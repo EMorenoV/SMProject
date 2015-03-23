@@ -2,23 +2,31 @@
 using System.Collections;
 using UnityEngine.UI;
 
+/**************************************************
+
+This is where the second StateMachine is implemented. 
+The other one is in Enemy.cs
+For extra info about the game please see Player.cs
+
+***************************************************/
+
 public class Bomb : MonoBehaviour {
 
-	public int Bomb_id;
 	public float timer;
 	public Text text_ref; 	// A ref to the bomb text label (=timer)
-	float rot_speed = 750f;
-	float speed = 2f;
-	Vector3 target;
-	public bool shot_by_enemy, shot_by_player;
+	float rot_speed = 750f; // Rotation speed in the Explosion sequence
+	float speed = 2f;		// The moving speed
+	Vector3 target;			// Where is the bomb going to?
+	public bool shot_by_enemy, shot_by_player;	// Who shot the bomb?
 	float maxDistance = 1f;   // The maximum distance the bomb can move before stopping. Applies when is thrown
 							  // by the player. If it was thrown by the enemy it will stop where the Player
 							  // target was
-	float maxSize = 3f;
-	float distance;
+	float distance;			  // This is the actual distance variable
+	float maxSize = 3f;		  // Size limit when the bomb is exploding
+
 	
 	public AudioClip sfx_explosion;
-	bool exploding;
+	bool exploding;			  // Is it already exploding?
 	
 	// Screen boundaries
 	
@@ -70,7 +78,7 @@ public class Bomb : MonoBehaviour {
 	
 	void Initialize()
 	{
-		timer = Random.Range(1, 20);
+		timer = Random.Range(1, 20);	// Randomize things a little bit
 		text_ref.text = timer.ToString();
 		current_state = States.Idle;
 	}
@@ -110,7 +118,7 @@ public class Bomb : MonoBehaviour {
 		this.transform.localScale += new Vector3(Time.deltaTime, Time.deltaTime, 1f);
 		this.transform.Rotate(new Vector3(0, 0, Time.deltaTime * rot_speed));
 		
-		if(this.transform.localScale.x > maxSize)
+		if(this.transform.localScale.x > maxSize)   // Did we reach the explosion size limit?
 		{
 			Destroy(this.gameObject);	
 		}
@@ -124,9 +132,8 @@ public class Bomb : MonoBehaviour {
 	}
 	
 	void Move()
-	{
-		//Vector3.Distance(this.transform.position, target)
-		
+	{	
+		// Move towards the target
 		this.transform.position += target * Time.deltaTime;
 		
 		if(!shot_by_player && Vector3.Distance(this.transform.position, target) < 1)
@@ -136,7 +143,8 @@ public class Bomb : MonoBehaviour {
 		
 		if(shot_by_player)
 		{
-			distance += Time.deltaTime;
+			distance += Time.deltaTime;	// Limit the amount of units the bomb can move to make the game
+										// a bit more interesting
 		}
 		
 		if(distance > maxDistance)
@@ -144,10 +152,9 @@ public class Bomb : MonoBehaviour {
 			distance = 0;
 			current_state = States.Idle;
 		}
-		//Debug.Log("Throwing bomb!!" + target);
-		
 	}
 	
+	// Called from Enemy.cs
 	public void Throw_Bomb()
 	{
 		
@@ -163,26 +170,19 @@ public class Bomb : MonoBehaviour {
 		}
 	}
 	
+	// Called from Player.cs after pressing the SPACE key
 	public void Throw_Bomb_Direction(Vector3 target_in)
-	{
-	
-		//Vector3 target_in = Vector3.zero;
-		
+	{	
 		// We can only throw a bomb only if is not already exploding
 		if(current_state != States.Explode)
 		{
-			// Set a target. In our case the Player is the target
-			//target = GameObject.Find ("Player").transform.position - this.transform.position;
 			target = target_in;
 			target.Normalize();
 			target = target * speed;
-			//target.Normalize();
-			//timer = 4;
 			shot_by_player = true;
 			current_state = States.Moving;
 		}
 	}
-	
 	
 	void OnTriggerEnter2D(Collider2D other) {
 		//Debug.Log ("Trigger entered!!: " + other.collider.name);
@@ -201,7 +201,5 @@ public class Bomb : MonoBehaviour {
 			this.GetComponent<Collider2D>().enabled = false;
 			current_state = States.Explode;
 		}
-		
-		//Debug.Log ("Trigger entered!!: " + other.name);
 	}
 }

@@ -25,6 +25,7 @@ Comments
 --------
 
 The actual State Machines are implemented in the Enemy and Bomb classes
+A PDF file with the State Machines Graphs is located in the directory /SM Chart
 
 **************/
 
