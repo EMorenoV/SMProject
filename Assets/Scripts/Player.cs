@@ -1,22 +1,38 @@
-﻿using UnityEngine;
+﻿/**************
+
+GP Assigment
+by Esteban Moreno Valdes
+March 2015
+
+PIGS AGUS BOMBS
+
+GOAL :
+
+Try to kill the enemies before they get you throwing bombs against you. But watch! There is
+a timer on the bombs and they might explode before you release it.
+
+**************/
+
+using UnityEngine;
 using System.Collections;
 
 public class Player : MonoBehaviour {
 
-	float speed = 1f;
-	Animator anim_ref;	// Reference to the Animator Component
-	public bool bomb_taken;
+	float speed = 1f;		// Player's speed
+	Animator anim_ref;		// Reference to the Animator Component
+	bool bomb_taken;
 	Collider2D Bomb_ref;	// A reference to the taken bomb
-	public Vector3 direction;	// The direction the player is looking at. We need this to throw bombs to enemies
-	// in the proper direction
-	public bool freeze;
+	Vector3 direction;		// The direction the player is looking at. We need this to throw bombs to enemies
+							// in the proper direction
+	bool freeze;
 	
-	public AudioClip sfx_shoot, sfx_take;
 	int maxEnemies = 5;	// Max enemies in this particular static level. This should be done by a level
 								// generator manager keeping track of the number of enemies etc... But this is
 								// an alpha I guess :)
 	
 	int enemies_killed;
+	
+	public AudioClip sfx_shoot, sfx_take;
 	
 	// Use this for initialization
 	void Start () {
