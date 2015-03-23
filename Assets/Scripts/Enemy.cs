@@ -1,22 +1,35 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/**************************************************
+
+This is where the first SM is implemented. 
+The other one is in Bomb.cs
+For extra info about the game please see Player.cs
+
+***************************************************/
+
 public class Enemy : MonoBehaviour {
 
 	float speed = 1.5f;			// Enemy speed. Make it slighter faster than the player
 	float rotation_speed = 2f;	// This is the speed of the search vector rotation in SEARCH State.
 								// In other words the speed of the radar :) You can see it in action
 								// in the Scene View
-	float maxBombTime = 4;
-	float decision_timer;
+	float maxBombTime = 4;		// The enemy won't get bombs where the timer is less than this number	
 	
-	float decision_time;		// After how many seconds the enemy will throw the bomb?
-	float walking_time;
+	float decision_time;		// How many seconds before the enemy attacks the player?
+	float walking_time;			// Number of seconds before the enemy goes to search state again
+								// If the enemy is lost because the player took the bomb they were going
+								// for or for other reason, it will search a new target again after this
+								// walking_time variable has elapsed
 	
-	float rot_speed = 750f;
+	float rot_speed = 750f;		// Rotation speed used in the Dead sequence
 	
-	public AudioClip sfx_explosion;
-	bool exploding;
+	bool exploding;				// Is the enemy alive or performing a Dead sequence (rotating basically)
+	
+	Animator anim_ref;	// Reference to the Animator Component
+	
+	bool bomb_taken = false;	// Are we carrying a bomb already?
 	
 	enum States {
 		Init,			// Initialise some of the enemy variables
@@ -27,16 +40,12 @@ public class Enemy : MonoBehaviour {
 		Dead,			// Do a little animation
 	}
 	
-	public RaycastHit2D init_hit, hit, old_hit;
-	
+	public RaycastHit2D hit;
+	public AudioClip sfx_explosion;
 	public Vector3 search_direction;
 	
 	States current_state = States.Init;
-	
-	Animator anim_ref;	// Reference to the Animator Component
-	
-	bool bomb_taken = false;	// Are we carrying a bomb already?
-	
+
 	// Screen boundaries
 	
 	public float SCR_MAX_RIGHT = 2.64f, SCR_MAX_LEFT = -2.64f, SCR_MAX_UP = 1.95f, SCR_MAX_BOTTOM = -1.95f;
@@ -70,13 +79,9 @@ public class Enemy : MonoBehaviour {
 		
 		if(this.transform.localScale.x > 3f)	// Did we reach the Max exploding size
 		{
-			//current_state = States.Disabled;
 			Destroy(this.gameObject);
 		}
 		
-		//Debug.Log ("Current State: " + current_state);
-		//if(hit.collider != null)
-			//Debug.Log ("Target: " + hit.collider.name);
 		Debug.DrawRay(transform.position, search_direction, Color.red, .2f);
 	}
 	
@@ -85,15 +90,13 @@ public class Enemy : MonoBehaviour {
 		anim_ref = this.GetComponent<Animator>();
 		search_direction = Vector2.up;
 		current_state = States.Search;
-		init_hit = hit;
 	}
 	
 	void Search()
 	{
 		hit = Physics2D.Raycast(this.transform.position, search_direction, 100f);
-		//if ( hit.collider != null && hit.transform != old_hit.transform) {
 		
-		// If the ray hit something and is a bomb that is not moving go for it
+		// If the ray hits something and is a bomb that is not moving (shot_by_enemy) go for it
 		
 		if ( hit.collider != null && !hit.collider.GetComponent<Bomb>().shot_by_enemy) 
 		{
@@ -106,18 +109,11 @@ public class Enemy : MonoBehaviour {
 			
 			if(hit.collider.tag != "Player" && hit.collider.GetComponent<Bomb>().timer >= maxBombTime)
 			{
-			 old_hit = hit;
 			 current_state = States.Walk;
 			}
-		
-		/*
-			float distance = Mathf.Abs(hit.point.y - transform.position.y);
-			float heightError = floatHeight - distance;
-			float force = liftForce * heightError - rigidbody2D.velocity.y * damping;
-			rigidbody2D.AddForce(Vector3.up * force);
-		*/
 		}
 		
+		// keep searching ...
 		// Rotate the vector and try to find a bomb in a different direction
 		
 		search_direction = Quaternion.Euler(0, 0, -1 * rotation_speed) * search_direction;
@@ -134,7 +130,7 @@ public class Enemy : MonoBehaviour {
 		
 			if(!bomb_taken && Vector2.Distance(hit.collider.transform.position, this.transform.position) <=0.1f)
 			{
-				// If was is not taken by another enemy then take it. Avoid stealing
+				// If it's not taken by another enemy then take it. Avoid stealing
 				
 				if(hit.collider.transform.parent == null)
 					current_state = States.Take;
@@ -159,7 +155,7 @@ public class Enemy : MonoBehaviour {
 				current_state = States.Attack;
 			}
 			else if (bomb_taken && decision_time > 0) {
-				decision_time -= Time.deltaTime;
+				decision_time -= Time.deltaTime;	// Keep decrementing
 			}
 		}
 		
@@ -178,7 +174,7 @@ public class Enemy : MonoBehaviour {
 		hit.collider.transform.parent = this.transform;
 		bomb_taken = true;
 		
-		// When a bomb is taken see how much time is left and calculate the decision_time
+		// When a bomb is taken see how much time is left and assign the decision_time
 		
 		decision_time = 2f;
 		
@@ -199,9 +195,6 @@ public class Enemy : MonoBehaviour {
 		search_direction = Vector2.up;
 		
 		bomb_taken = false;
-		//hit.collider = null;
-		
-		// Lets see if we solve our problems after throwing the bomb
 		
 		current_state = States.Search;
 	}
