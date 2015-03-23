@@ -6,11 +6,20 @@ March 2015
 
 Game Name : PIGS AGUS BOMBS
 
-GOAL :
-----
+DESCRIPTION
+-----------
 
-Try to kill the enemies before they get you throwing bombs against you. But watch! There is
+Pigs agus Bombs is an arcade game. The action takes place in a green field where a number
+of pigs and bombs has been placed. The player controls the Red pig.
+The goal of the game is to blow up the grey pigs throwing bombs at them. But watch! There is
 a timer on the bombs and they might explode before you release it.
+
+Controls
+--------
+
+Cursor Keys - Move
+Space - Take, Release a bomb (in the direction the player is moving)
+ESC - Restart the Level
 
 Comments
 --------
@@ -40,7 +49,7 @@ public class Player : MonoBehaviour {
 	
 	public AudioClip sfx_shoot, sfx_take;	// Sound effects
 	
-	
+	// Use this for initialization
 	void Start () {
 		anim_ref = this.GetComponent<Animator>();
 	}	
@@ -51,20 +60,23 @@ public class Player : MonoBehaviour {
 										// direction that will be used to attack enemies
 		
 		// Move the player
-		if(!freeze)		// If its suppose to move see what keys we pressed
+		if(!freeze)		// If we are moving, see what keys we pressed
 		{	
 			if(Input.GetKey(KeyCode.UpArrow))
 			{
 				// See if we are inside the screen boundaries first
 				if(transform.position.y < Screen_Info.SCR_MAX_UP - .1f)
 				{
+					// Update direction Vector
 					direction += new Vector3(0, Time.deltaTime * speed, 0);
+					// Update the position
 					transform.position += new Vector3(0, Time.deltaTime * speed, 0);
-					anim_ref.SetBool("walk", true);	// Trigger the walking animation
+					// Trigger the walking animation
+					anim_ref.SetBool("walk", true);	
 				}
 			}
 			
-			// The same structure is followed in the next if statements
+			// The same structure is followed in the next IF statements
 			
 			else if(Input.GetKey(KeyCode.DownArrow))
 			{	
@@ -104,7 +116,7 @@ public class Player : MonoBehaviour {
 				anim_ref.SetBool("walk", false);  
 			}
 			
-			// If we press Space key two things can happen :
+			// If we press Space key two things may happen :
 			// 1) Take a bomb if we are not holding one
 			// 2) Release a bomb if the player took one already
 			
@@ -115,11 +127,13 @@ public class Player : MonoBehaviour {
 				{
 					Bomb_ref = Physics2D.OverlapCircle(this.transform.position, .2f);
 					
+					// Are we colliding with a bomb object?
 					if(Bomb_ref != null)
 					{
-						//temp.collider.gameObject.transform.parent = this.transform;
+						// YEs! We are...
 						bomb_taken = true;
 						audio.PlayOneShot(sfx_take);
+						// The bomb becomes a child gameobject to simulate it was taken by the player
 						Bomb_ref.gameObject.transform.parent = this.transform;
 					}
 				}
@@ -128,11 +142,13 @@ public class Player : MonoBehaviour {
 				
 				else
 				{
+					// Set the bomb free
 					Bomb_ref.gameObject.transform.parent = null;
+					// And throw it in the direction we are looking at
 					Bomb_ref.GetComponent<Bomb>().Throw_Bomb_Direction(direction);
-					audio.PlayOneShot(sfx_shoot);
+					audio.PlayOneShot(sfx_shoot); // Do some noise
 					bomb_taken = false;
-					Bomb_ref = null;
+					Bomb_ref = null;	// Avoid dealing with old references the next time
 				}
 			}
 			
@@ -143,6 +159,7 @@ public class Player : MonoBehaviour {
 		}
 	}
 	
+	// This is called from the class Bomb
 	public void Freeze()
 	{
 		freeze = true;
@@ -156,11 +173,14 @@ public class Player : MonoBehaviour {
 		
 		if(enemies_killed >= maxEnemies)
 		{
+			// Display the winning message
 			GameObject.Find("Win_Canvas").GetComponent<Canvas>().enabled = true;
+			// Stop!
 			Time.timeScale = 0;
 		}
 	}
 	
+	// Reload everything...
 	void Restart_Level()
 	{
 		Application.LoadLevel("Main");
