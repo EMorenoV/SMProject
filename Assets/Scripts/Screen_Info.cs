@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+// *******************************************
+// This is a class holding some constants
+// common to different classes in the project
+// *******************************************
+
 public static class Screen_Info {
 
 	// Screen boundaries
